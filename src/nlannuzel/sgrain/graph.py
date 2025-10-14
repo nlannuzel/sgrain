@@ -155,7 +155,7 @@ class Box:
                 yield [i, j]
 
     def iter_boundary(self):
-        """returns an iterator on all the coordinates making up
+        """returns an iterator on all the coordinates making up the
         boundary of this box"""
         for j in self.iter_height():
             yield [self.tl.i, j]
