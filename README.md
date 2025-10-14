@@ -35,7 +35,7 @@ rain.load_image()
 # https://maps.app.goo.gl/9aA7i8chryYwuhUT8
 picnic_spot = Location(1.313383, 103.815203)
 
-# Returns a number from 0 to 31
+# Returns a number between 0 and 31
 intensity = rain.intensity_at(picnic_spot)
 
 message = f"At location {picnic_spot}, time {rain.rounded_dt}: "
@@ -49,7 +49,7 @@ print(message)
 ```
 
 ### In [home-assistant](https://www.home-assistant.io/)
-Log into the home-assistant box, for example by connecting to the console of the VM where HA is installed and running. Then, attach the the homeasistant container:
+Log into the home-assistant box, for example by connecting to the console of the VM where HA is installed and running. Then, attach to the homeasistant container:
 ```shell
 docker exec -ti homeassistant bash
 ```
@@ -66,7 +66,7 @@ cd python_venv
 ./bin/pip3 install nlannuzel.sgrain
 ```
 
-Verify that the module works, this command should display between 0 and 31:
+Verify that the module works, this command should display a number between 0 and 31:
 ```shell
 ./bin/rain-intensity-at -a 1.313383 -o 103.815203 -p 1
 ```
@@ -75,7 +75,7 @@ Open the home-assistant GUI in a browser. If not already done, install the File 
 ```yaml
 command_line:
   sensor:
-    command: /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1
+    command: /config/python_venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1
     name: rain-sensor
     unique_id: rain
     scan_interval: 300
