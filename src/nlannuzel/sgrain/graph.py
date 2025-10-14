@@ -27,7 +27,7 @@ class Color:
         parameters:
           palette: tuples of Color
         returns:
-          position of the neares color in the palette
+          position of the nearest color in the palette
         """
         min_d = 3 * (255**2)
         debug = False
@@ -98,7 +98,7 @@ class Box:
             for i in self.iter_width():
                 yield([i, j])
     def iter_boundary(self):
-        """returns an iterator on all the coordinates making up
+        """returns an iterator on all the coordinates making up the
         boundary of this box"""
         for j in self.iter_height():
             yield([self.tl.i, j])
