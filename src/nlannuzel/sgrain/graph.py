@@ -1,4 +1,5 @@
 """Classes for basic in-memory image handling"""
+from math import atan, degrees
 
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
@@ -86,6 +87,23 @@ class Pixel:
         if self.col is not None:
             s += f" = {self.col}"
         return s
+
+    def distance_to(self, other):
+        """distance to another pixel"""
+        return ((other.i - self.i)**2 + (other.j - self.j)**2)**0.5
+
+    def angle_to(self, other):
+        """angle in dgrees of a line formed by this pixel and another
+        pixel, counted clockwise, with 0 at 12 o'clock"""
+        if other.i == self.i:
+            if other.j == self.j:
+                raise RuntimeError("no angle between identical points")
+            return 0 if other.j < self.j else 180
+        elif other.j == self.j:
+            return 90 if other.i > self.i else 270
+
+        offset = 90 if other.i > self.i else 270
+        return offset + degrees(atan((other.j - self.j) / (other.i - self.i)))
 
 class Box:
     """an area in the image represented by two pixels at the top-left
