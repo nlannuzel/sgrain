@@ -163,7 +163,8 @@ class RainAreas:
         # averaging around pixel's neighbours
         count = 0
         intensity = 0
-        for pn in self.intensity_map.iter_neighbours_r(pixel, d):
+        box = self.intensity_map.box_around(pixel, d)
+        for pn in self.intensity_map.iter_rectangle_area(box):
             count += 1
             intensity += pn.col.r
         intensity /= count
@@ -180,6 +181,6 @@ class RainAreas:
         if (d == 0):
             output_image.set_color_at(pixel.i, pixel.j, color)  # draw a dot
         else:
-            for p in output_image.iter_neighbours_r_boundary(pixel, d):   # draw a square
-                output_image.set_color_at(p.i, p.j, color)
+            box = self.output_image.box_around(pixel, d)
+            self.output_image.draw_box(box, color)
         png.from_array(output_image.to_rgb_rows(), mode = 'RGB').save(file_path)

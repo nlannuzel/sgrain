@@ -1,5 +1,5 @@
 """Classes for basic in-memory image handling"""
-from math import atan, degrees
+from math import atan, degrees, sqrt
 
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
@@ -172,6 +172,9 @@ class Image:
     def __repr__(self):
         return f"Image ({self.width}x{self.height})"
 
+    def box(self):
+        return Box.from_coordinates(0, 0, self.width - 1, self.height - 1)
+
     @classmethod
     def from_rgb_rows(cls, rows, has_alpha = False):
         """generate a new image from a list of (r, g, b, r, g, b...)
@@ -190,7 +193,9 @@ class Image:
         for row in self.rows:
             new_row = []
             for i in range(0, len(row)):
-                new_row.extend([row[i].r, row[i].g, row[i].b])
+                col = row[i]
+                a = [col.g, col.g, col.g] if col.is_grey() else [col.r, col.g, col.b] 
+                new_row.extend(a)
             rows.append(new_row)
         return rows
 
@@ -225,33 +230,35 @@ class Image:
         for pos in box.iter_area():
             yield(self.get_pixel_at(pos[0], pos[1]))
 
+    def iter_area(self):
+        """Returns an iterator on all pixels of this image"""
+        return self.iter_rectangle_area(self.box())
+
     def iter_rectangle_boundary(self, box):
         """Returns an iterator on all pixels within the boundary of
         given box area"""
         for pos in box.iter_boundary():
             yield(self.get_pixel_at(pos[0], pos[1]))
 
+    def box_around(self, pixel, d):
+        """Returns a box (size d x d) centered on the given pixel"""
+        if d <= 0:
+            raise RuntimeError("d must be strictly positive")
+        return Box.from_coordinates(
+            max( 0          , pixel.i - d ),
+            max( 0          , pixel.j - d ),
+            min( self.width , pixel.i + d ),
+            min( self.height, pixel.j + d ))
+
     def iter_neighbours_r(self, pixel, d):
         """Returns an iterator on all pixels within a box (size d x d)
         centered on the given pixel"""
-        if d <= 0:
-            raise RuntimeError("d must be strictly positive")
-        return self.iter_rectangle_area(Box.from_coordinates(
-            max(0, pixel.i - d),
-            max(0, pixel.j - d),
-            min(self.width, pixel.i + d),
-            min(self.height, pixel.j + d)))
+        return self.iter_rectangle_area(self.box_around(pixel, d))
 
     def iter_neighbours_r_boundary(self, pixel, d):
         """Returns an iterator on all pixels on the boundary of a box
         (size d x d) centered on the given pixel"""
-        if d <= 0:
-            raise RuntimeError("d must be strictly positive")
-        return self.iter_rectangle_boundary(Box.from_coordinates(
-            max(0, pixel.i - d),
-            max(0, pixel.j - d),
-            min(self.width, pixel.i + d),
-            min(self.height, pixel.j + d)))
+        return self.iter_rectangle_boundary(self.box_around(pixel, d))
 
     def transform(self, func):
         """
@@ -260,9 +267,11 @@ class Image:
         `func` takes a Pixel object and must return a Color object.
         """
         new_image = Image(width = self.width, height = self.height)
-        box = Box(Pixel(0, 0), Pixel(self.width - 1, self.height - 1))
-        for pos in box.iter_area():
-            i, j = pos
-            pixel = self.get_pixel_at(i, j)
-            new_image.set_color_at(i, j, func(pixel))
+        for pixel in self.iter_area():
+            new_image.set_color_at(pixel.i, pixel.j, func(pixel))
         return new_image
+
+    def draw_box(self, box, color):
+        """draw a box in a given color"""
+        for i, j in box.iter_boundary():
+            self.set_color_at(i, j, color)
