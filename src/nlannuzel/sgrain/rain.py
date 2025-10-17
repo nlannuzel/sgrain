@@ -94,7 +94,8 @@ class RainAreas:
         with open(self.filepath, "rb") as f:
             reader = png.Reader(f)
             width, height, data, info = reader.read()
-            self.intensity_map = Image.from_rgb_rows(rows = data, has_alpha = True).transform(to_bw)
+            self.original_image = Image.from_rgb_rows(rows = data, has_alpha = True)
+        self.intensity_map = self.original_image.transform(to_bw)
 
     def _try_to_load_image(self):
         """Download the image if needed, then load it in memory"""
