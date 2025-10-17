@@ -1,5 +1,7 @@
 import unittest
 from nlannuzel.sgrain.rain import RainAreas
+from nlannuzel.sgrain.geo import Location
+from nlannuzel.sgrain.graph import Image, Pixel
 import datetime
 
 class TestRain(unittest.TestCase):
@@ -26,6 +28,15 @@ class TestRain(unittest.TestCase):
         self.assertEqual( rounded.day   , 11)
         self.assertEqual( rounded.hour  , 12)
         self.assertEqual( rounded.minute, 20)
+
+    def test_location_to_pixel(self):
+        rain = RainAreas()
+        rain.intensity_map = Image(217, 120)
+        location1 = Location(1.313383, 103.815203)
+        pixel = rain.location_to_pixel(location1)
+        location2 = rain.pixel_to_location(pixel)
+        self.assertAlmostEqual(location1.lon, location2.lon, 3)
+        self.assertAlmostEqual(location1.lat, location2.lat, 3)
 
 if __name__ == '__main__':
     unittest.main()

@@ -150,6 +150,15 @@ class RainAreas:
             j = round(self._interpolate(self.top_left.lat, 0, self.bottom_right.lat, self.intensity_map.height - 1, location.lat)),
         )
 
+    def pixel_to_location(self, pixel):
+        """Take a Pixel and return the corresponding
+        Location(latitude, longitude) by using a linear
+        interpolation"""
+        return Location(
+            lon = self._interpolate(0, self.top_left.lon, self.intensity_map.width - 1, self.bottom_right.lon, pixel.i),
+            lat = self._interpolate(0, self.top_left.lat, self.intensity_map.height - 1, self.bottom_right.lat, pixel.j),
+        )
+
     def intensity_at(self, location, d = 0):
         """Returns the rain intensity (int from 0 to 31) at the given
         Location(latitude,logitude).
