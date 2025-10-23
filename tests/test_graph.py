@@ -22,6 +22,14 @@ class TestGraph(unittest.TestCase):
         self.assertEqual( Color(255, 255, 0  ).posterize(palette), 2 )
         self.assertEqual( Color(255, 255, 255).posterize(palette), 2 )
 
+    def test_distance(self):
+        a = Color(0, 0, 0)
+        b = Color(127, 0, 0)
+        c = Color(255, 0, 0)
+        d = Color(0, 127, 0)
+        self.assertTrue(a.distance_to(b) < a.distance_to(c))
+        self.assertEqual(a.distance_to(b), a.distance_to(d))
+
     def test_box(self):
         with self.assertRaises(RuntimeError):
             b = Box.from_coordinates(0, 0, 0, 0)
