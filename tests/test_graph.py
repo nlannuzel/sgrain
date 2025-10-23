@@ -1,7 +1,12 @@
 import unittest
-from nlannuzel.sgrain.graph import Color, Pixel, Box
+from nlannuzel.sgrain.graph import Color, Pixel, Box, BLACK, WHITE, RED
 
 class TestGraph(unittest.TestCase):
+    def test_color(self):
+        self.assertTrue(Color.grey(111).is_grey())
+        self.assertTrue(BLACK.is_grey())
+        self.assertFalse(RED.is_grey())
+
     def test_posterize(self):
 
         palette = [Color(r, g, b) for r, g, b, in [
