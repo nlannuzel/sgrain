@@ -27,7 +27,7 @@ class Color:
         parameters:
           palette: tuples of Color
         returns:
-          position of the neares color in the palette
+          position of the nearest color in the palette
         """
         min_d = 3 * (255**2)
         debug = False
@@ -56,7 +56,7 @@ PURPLE  = Color( 255, 0  , 255 )
 CYAN    = Color( 0  , 255, 255 )
 
 class Pixel:
-    """A set of i and j coordinates, and optiuonally a Color"""
+    """A set of i and j coordinates, and optionally a Color"""
     def __init__(self, i, j, col = None):
         if i < 0 or j < 0:
             raise Exception("coordinates cannot be negative")
