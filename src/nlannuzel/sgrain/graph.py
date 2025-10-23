@@ -33,7 +33,7 @@ class Color:
         debug = False
         for i in range(0, len(palette)):
             ref = palette[i]
-            d = abs(ref.r - self.r)**2 + abs(ref.g - self.g)**2 + abs(ref.b - self.b)**2
+            d = (ref.r - self.r)**2 + (ref.g - self.g)**2 + (ref.b - self.b)**2
             if min_d < d:
                 continue
             min_d = d
