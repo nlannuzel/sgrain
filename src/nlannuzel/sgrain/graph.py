@@ -20,6 +20,9 @@ class Color:
     def __repr__(self):
         return f"Color({self.r},{self.r},{self.b})"
 
+    def distance_to(self, other):
+        return ((other.r - self.r)**2 + (other.g - self.g)**2 + (other.b - self.b)**2)**0.5
+
     def posterize(self, palette):
         """find the closest color in a palette, and return the index
         of the color in the palette.
@@ -29,16 +32,12 @@ class Color:
         returns:
           position of the nearest color in the palette
         """
-        min_d = 3 * (255**2)
-        debug = False
+        min_d = None
         for i in range(0, len(palette)):
-            ref = palette[i]
-            d = (ref.r - self.r)**2 + (ref.g - self.g)**2 + (ref.b - self.b)**2
-            if min_d < d:
-                continue
-            min_d = d
-            min_i = i
-        min_d = min_d**1/2
+            d = self.distance_to(palette[i])
+            if min_d is None or min_d > d:
+                min_d = d
+                min_i = i
         return min_i
 
     @classmethod
