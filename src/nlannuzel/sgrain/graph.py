@@ -1,7 +1,8 @@
 """Classes for basic in-memory image handling"""
 
 class Color:
-    """A color stored as red, green, blue 8 bits components"""
+    """A color stored as either a grey level, or red, green, blue 8
+    bits components"""
     def __init__(self, r, g, b):
         """Build a new Color object from r, g, and b components
         between 0 and 255"""
@@ -13,14 +14,30 @@ class Color:
                 raise Exception("color cannot be negative")
             if c > 255:
                 raise Exception("only 8 bits is supported")
+        if r == b and r == g and b == g:
+            # grey level
+            self.g = g
+            self.r = None
+            return
         self.r = r
         self.g = g
         self.b = b
 
+    def is_grey(self):
+        return self.r is None
+
     def __repr__(self):
+        if self.is_grey():
+            return f"Color({self.g})"
         return f"Color({self.r},{self.r},{self.b})"
 
     def distance_to(self, other):
+        if self.is_grey():
+            if other.is_grey():
+                return ( 3*(other.g - self.g)**2 )**0.5
+            return ((other.r - self.g)**2 + (other.g - self.g)**2 + (other.b - self.g)**2)**0.5
+        if other.is_grey():
+            return ((other.g - self.r)**2 + (other.g - self.g)**2 + (other.g - self.g)**2)**0.5
         return ((other.r - self.r)**2 + (other.g - self.g)**2 + (other.b - self.b)**2)**0.5
 
     def posterize(self, palette):
