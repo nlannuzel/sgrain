@@ -125,5 +125,18 @@ class TestGraph(unittest.TestCase):
             a.append([i, j])
         self.assertEqual( len(a), 8 )  # 6 + 6 + 1 + 1
 
+    def test_angle(self):
+        a = Pixel(5, 5)
+        with self.assertRaises(RuntimeError):
+            a.angle_to(Pixel(5, 5))
+        self.assertAlmostEqual(a.angle_to(Pixel(5 , 0 )), 0  )
+        self.assertAlmostEqual(a.angle_to(Pixel(10, 0 )), 45 )
+        self.assertAlmostEqual(a.angle_to(Pixel(10, 5 )), 90 )
+        self.assertAlmostEqual(a.angle_to(Pixel(10, 10)), 135)
+        self.assertAlmostEqual(a.angle_to(Pixel(5 , 10)), 180)
+        self.assertAlmostEqual(a.angle_to(Pixel(0 , 10)), 225)
+        self.assertAlmostEqual(a.angle_to(Pixel(0 , 5 )), 270)
+        self.assertAlmostEqual(a.angle_to(Pixel(0 , 0 )), 315)
+
 if __name__ == '__main__':
     unittest.main()

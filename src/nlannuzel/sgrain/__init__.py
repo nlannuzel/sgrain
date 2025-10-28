@@ -18,6 +18,7 @@ def rain_intensity_at():
     parser.add_argument('-D', '--day', help = 'day to consider instead of current date/time' )
     parser.add_argument('-H', '--hour', help = 'hour to consider instead of current date/time' )
     parser.add_argument('-m', '--minute', help = 'minute to consider instead of current date/time. Will be rounded down to 5 min.' )
+    parser.add_argument('-n', '--filter-noise', action = 'store_true', help = 'remove 1 pixel noise in the radar image.' )
     args = parser.parse_args()
 
     rain = RainAreas(cache_dir = args.cachedir if args.cachedir else None)
@@ -35,6 +36,9 @@ def rain_intensity_at():
     location = Location(
         lat = float(args.latitude),
         lon = float(args.longitude))
+    if args.filter_noise:
+        rain.remove_noise()
+    squaresize =  int(args.squaresize) if args.squaresize else 0
     if args.output:
-        rain.save_intensity_map(args.output, location, 0 if args.squaresize else int(args.square_size))
-    print(rain.intensity_at(location, int(args.squaresize)))
+        rain.save_intensity_map(file_path = args.output, location = location, d = squaresize)
+    print(rain.intensity_at(location, squaresize))

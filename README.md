@@ -17,7 +17,7 @@ pip3 install nlannuzel.sgrain
 ## Package usage
 ### With the built-in script:
 ```shell
-rain-intensity-at -a 1.313383 -o 103.815203
+rain-intensity-at -a 1.313383 -o 103.815203 -n
 ```
 
 ### With a custom script:
@@ -34,6 +34,9 @@ rain.load_image()
 
 # https://maps.app.goo.gl/9aA7i8chryYwuhUT8
 picnic_spot = Location(1.313383, 103.815203)
+
+# Remove noise (isolated pixels that often exist in the raw image)
+rain.remove_noise()
 
 # Returns a number from 0 to 31
 intensity = rain.intensity_at(picnic_spot)
@@ -75,7 +78,7 @@ Open the home-assistant GUI in a browser. If not already done, install the File 
 ```yaml
 command_line:
   sensor:
-    command: /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1
+    command: /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n
     name: rain-sensor
     unique_id: rain
     scan_interval: 300

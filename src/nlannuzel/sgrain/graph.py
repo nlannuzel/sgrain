@@ -1,4 +1,5 @@
 """Classes for basic in-memory image handling"""
+from math import atan, degrees, sqrt
 
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
@@ -63,6 +64,23 @@ class Color:
         """returns a grey level from black to white"""
         return cls(level, level, level)
 
+    def __eq__(self, other):
+        """returns True if this Color represents the same color as the
+        other one, and False otherwise"""
+        if self.is_grey():
+            if other.is_grey():
+                return self.g == other.g
+            return False
+        if other.is_grey():
+            return False
+        if self.r != other.r:
+            return False
+        if self.g != other.g:
+            return False
+        if self.b != other.b:
+            return False
+        return True
+
 BLACK   = Color( 0  , 0  , 0   )
 WHITE   = Color( 255, 255, 255 )
 RED     = Color( 255, 0  , 0   )
@@ -86,6 +104,23 @@ class Pixel:
         if self.col is not None:
             s += f" = {self.col}"
         return s
+
+    def distance_to(self, other):
+        """distance to another pixel"""
+        return ((other.i - self.i)**2 + (other.j - self.j)**2)**0.5
+
+    def angle_to(self, other):
+        """angle in dgrees of a line formed by this pixel and another
+        pixel, counted clockwise, with 0 at 12 o'clock"""
+        if other.i == self.i:
+            if other.j == self.j:
+                raise RuntimeError("no angle between identical points")
+            return 0 if other.j < self.j else 180
+        elif other.j == self.j:
+            return 90 if other.i > self.i else 270
+
+        offset = 90 if other.i > self.i else 270
+        return offset + degrees(atan((other.j - self.j) / (other.i - self.i)))
 
 class Box:
     """an area in the image represented by two pixels at the top-left
@@ -154,6 +189,9 @@ class Image:
     def __repr__(self):
         return f"Image ({self.width}x{self.height})"
 
+    def box(self):
+        return Box.from_coordinates(0, 0, self.width - 1, self.height - 1)
+
     @classmethod
     def from_rgb_rows(cls, rows, has_alpha = False):
         """generate a new image from a list of (r, g, b, r, g, b...)
@@ -172,7 +210,9 @@ class Image:
         for row in self.rows:
             new_row = []
             for i in range(0, len(row)):
-                new_row.extend([row[i].r, row[i].g, row[i].b])
+                col = row[i]
+                a = [col.g, col.g, col.g] if col.is_grey() else [col.r, col.g, col.b] 
+                new_row.extend(a)
             rows.append(new_row)
         return rows
 
@@ -207,33 +247,35 @@ class Image:
         for pos in box.iter_area():
             yield(self.get_pixel_at(pos[0], pos[1]))
 
+    def iter_area(self):
+        """Returns an iterator on all pixels of this image"""
+        return self.iter_rectangle_area(self.box())
+
     def iter_rectangle_boundary(self, box):
         """Returns an iterator on all pixels within the boundary of
         given box area"""
         for pos in box.iter_boundary():
             yield(self.get_pixel_at(pos[0], pos[1]))
 
+    def box_around(self, pixel, d):
+        """Returns a box (size d x d) centered on the given pixel"""
+        if d <= 0:
+            raise RuntimeError("d must be strictly positive")
+        return Box.from_coordinates(
+            max( 0          , pixel.i - d ),
+            max( 0          , pixel.j - d ),
+            min( self.width , pixel.i + d ),
+            min( self.height, pixel.j + d ))
+
     def iter_neighbours_r(self, pixel, d):
         """Returns an iterator on all pixels within a box (size d x d)
         centered on the given pixel"""
-        if d <= 0:
-            raise RuntimeError("d must be strictly positive")
-        return self.iter_rectangle_area(Box.from_coordinates(
-            max(0, pixel.i - d),
-            max(0, pixel.j - d),
-            min(self.width, pixel.i + d),
-            min(self.height, pixel.j + d)))
+        return self.iter_rectangle_area(self.box_around(pixel, d))
 
     def iter_neighbours_r_boundary(self, pixel, d):
         """Returns an iterator on all pixels on the boundary of a box
         (size d x d) centered on the given pixel"""
-        if d <= 0:
-            raise RuntimeError("d must be strictly positive")
-        return self.iter_rectangle_boundary(Box.from_coordinates(
-            max(0, pixel.i - d),
-            max(0, pixel.j - d),
-            min(self.width, pixel.i + d),
-            min(self.height, pixel.j + d)))
+        return self.iter_rectangle_boundary(self.box_around(pixel, d))
 
     def transform(self, func):
         """
@@ -242,9 +284,157 @@ class Image:
         `func` takes a Pixel object and must return a Color object.
         """
         new_image = Image(width = self.width, height = self.height)
-        box = Box(Pixel(0, 0), Pixel(self.width - 1, self.height - 1))
-        for pos in box.iter_area():
-            i, j = pos
-            pixel = self.get_pixel_at(i, j)
-            new_image.set_color_at(i, j, func(pixel))
+        for pixel in self.iter_area():
+            new_image.set_color_at(pixel.i, pixel.j, func(pixel))
         return new_image
+
+    def draw_box(self, box, color):
+        """draw a box in a given color"""
+        for i, j in box.iter_boundary():
+            self.set_color_at(i, j, color)
+
+class BlobFinder:
+    def __init__(self, image, bg_col = BLACK):
+        self.image = image
+        self.bg_col = bg_col
+        self._blobmap = None
+        self._blobs = None
+
+    def _first_pass(self):
+        """Loop through all pixels and tries to identify
+        neighbours. Pixels are assigned a label, pixels with the same
+        label are part of the same blob. Potential new blobs, or for
+        those where connection to existing blobs is not known yet, are
+        given a new label. later, when two labels are found to be
+        actually in the same blob, their labels is added to a
+        "equivalence" table that forms a cyclic graph, where nodes in
+        a cycle are equivalent:
+        e.g.:
+            1: 2, 3
+            2: 1, 3
+            3: 1
+            4: 6
+            5:
+            6: 4, 7
+            7: 6
+
+            1, 2, and 3 are equivalents
+            4, 6 and 7 are equivalent
+        """
+        graph = {}
+        blob_id = 0
+        blobmap = Image(self.image.width, self.image.height)
+
+        def set_equivalence(label1, label2):
+            if label1 is None or label2 is None:
+                raise RuntimeError("None labels")
+            if label1 == label2:
+                raise RuntimeError("equal labels")
+            if label1 not in graph:
+                graph[label1] = [label2]
+                return
+            if label2 not in graph[label1]:
+                graph[label1].append(label2)
+
+        def non_bg_color_at(i, j):
+            col = blobmap.get_color_at(i, j)
+            if col == self.bg_col:
+                return None
+            return col
+
+        for pixel in self.image.iter_area():
+            if pixel.col == self.bg_col:
+                continue
+            i = pixel.i
+            j = pixel.j
+            left = non_bg_color_at(i - 1, j    ) if i > 0 else None
+            up   = non_bg_color_at(i    , j - 1) if j > 0 else None
+            if up is None and left is None:
+                blob_id += 1   # no known neighbours, maybe a new blob ?
+                blobmap.set_color_at(i,j, Color.grey(blob_id))
+                graph[blob_id] = []
+                continue
+            if up is not None:
+                blobmap.set_color_at(i, j, up)  # belongs to the same blob as "up"
+                if left is not None and left != up:
+                    set_equivalence(left.g, up.g)
+                    set_equivalence(up.g, left.g)
+                continue
+            blobmap.set_color_at(i, j, left)  # belongs to the same blob as "left"
+        return (blobmap, graph)
+
+    def _resolve_labels(self, graph):
+        """walk through the equivalence graph built in 1st pass,
+        Returns a new structure where all labels are "resolved" to the
+        smallest label
+        e.g. input:
+            1: 2, 3
+            2: 1, 3
+            3: 1
+            4: 6
+            5:
+            6: 4, 7
+            7: 6
+
+        output:
+            1: 1
+            2: 1
+            3: 1
+            4: 4
+            5: 5
+            6: 4
+            7: 4
+"""
+
+        resolved = {}
+        def smallest_label(label, explored = []):
+            if label in resolved:
+                return resolved[label]
+            smallest = label
+            for label in graph[label]:
+                if label < smallest:
+                    smallest = label
+                if label in explored:
+                    continue
+                x = smallest_label(label, explored + [label])
+                if x < smallest:
+                    smallest = x
+            return smallest
+
+        for label in graph:
+            resolved[label] = smallest_label(label)
+        return resolved
+
+    def _second_pass(self, blobmap, resolved):
+        """In the blobmap, replace each label by its "resolved"
+        value"""
+        for pixel in blobmap.iter_area():
+            label = pixel.col.g
+            if label == 0:
+                continue
+            label = resolved[label]
+            blobmap.set_color_at(pixel.i, pixel.j, Color.grey(label))
+
+    @property
+    def blobmap(self):
+        if self._blobmap is None:
+            blobmap, graph = self._first_pass()
+            resolved = self._resolve_labels(graph)
+            self._second_pass(blobmap, resolved)
+            self._blobmap = blobmap
+        return self._blobmap
+
+    @property
+    def blobs(self):
+        if self._blobs is None:
+            blobs = {}
+            for pixel in self.image.iter_area():
+                label = self.blobmap.get_pixel_at(pixel.i, pixel.j).col.g
+                if label == 0:
+                    continue
+                if label in blobs:
+                    blobs[label].append(pixel)
+                else:
+                    blobs[label] = [pixel]
+            self._blobs = list(blobs.values())
+        return self._blobs
