@@ -64,6 +64,23 @@ class Color:
         """returns a grey level from black to white"""
         return cls(level, level, level)
 
+    def __eq__(self, other):
+        """returns True if this Color represents the same color as the
+        other one, and False otherwise"""
+        if self.is_grey():
+            if other.is_grey():
+                return self.g == other.g
+            return False
+        if other.is_grey():
+            return False
+        if self.r != other.r:
+            return False
+        if self.g != other.g:
+            return False
+        if self.b != other.b:
+            return False
+        return True
+
 BLACK   = Color( 0  , 0  , 0   )
 WHITE   = Color( 255, 255, 255 )
 RED     = Color( 255, 0  , 0   )
@@ -275,3 +292,149 @@ class Image:
         """draw a box in a given color"""
         for i, j in box.iter_boundary():
             self.set_color_at(i, j, color)
+
+class BlobFinder:
+    def __init__(self, image, bg_col = BLACK):
+        self.image = image
+        self.bg_col = bg_col
+        self._blobmap = None
+        self._blobs = None
+
+    def _first_pass(self):
+        """Loop through all pixels and tries to identify
+        neighbours. Pixels are assigned a label, pixels with the same
+        label are part of the same blob. Potential new blobs, or for
+        those where connection to existing blobs is not known yet, are
+        given a new label. later, when two labels are found to be
+        actually in the same blob, their labels is added to a
+        "equivalence" table that forms a cyclic graph, where nodes in
+        a cycle are equivalent:
+        e.g.:
+            1: 2, 3
+            2: 1, 3
+            3: 1
+            4: 6
+            5:
+            6: 4, 7
+            7: 6
+
+            1, 2, and 3 are equivalents
+            4, 6 and 7 are equivalent
+        """
+        graph = {}
+        blob_id = 0
+        blobmap = Image(self.image.width, self.image.height)
+
+        def set_equivalence(label1, label2):
+            if label1 is None or label2 is None:
+                raise RuntimeError("None labels")
+            if label1 == label2:
+                raise RuntimeError("equal labels")
+            if label1 not in graph:
+                graph[label1] = [label2]
+                return
+            if label2 not in graph[label1]:
+                graph[label1].append(label2)
+
+        def non_bg_color_at(i, j):
+            col = blobmap.get_color_at(i, j)
+            if col == self.bg_col:
+                return None
+            return col
+
+        for pixel in self.image.iter_area():
+            if pixel.col == self.bg_col:
+                continue
+            i = pixel.i
+            j = pixel.j
+            left = non_bg_color_at(i - 1, j    ) if i > 0 else None
+            up   = non_bg_color_at(i    , j - 1) if j > 0 else None
+            if up is None and left is None:
+                blob_id += 1   # no known neighbours, maybe a new blob ?
+                blobmap.set_color_at(i,j, Color.grey(blob_id))
+                graph[blob_id] = []
+                continue
+            if up is not None:
+                blobmap.set_color_at(i, j, up)  # belongs to the same blob as "up"
+                if left is not None and left != up:
+                    set_equivalence(left.g, up.g)
+                    set_equivalence(up.g, left.g)
+                continue
+            blobmap.set_color_at(i, j, left)  # belongs to the same blob as "left"
+        return (blobmap, graph)
+
+    def _resolve_labels(self, graph):
+        """walk through the equivalence graph built in 1st pass,
+        Returns a new structure where all labels are "resolved" to the
+        smallest label
+        e.g. input:
+            1: 2, 3
+            2: 1, 3
+            3: 1
+            4: 6
+            5:
+            6: 4, 7
+            7: 6
+
+        output:
+            1: 1
+            2: 1
+            3: 1
+            4: 4
+            5: 5
+            6: 4
+            7: 4
+"""
+
+        resolved = {}
+        def smallest_label(label, explored = []):
+            if label in resolved:
+                return resolved[label]
+            smallest = label
+            for label in graph[label]:
+                if label < smallest:
+                    smallest = label
+                if label in explored:
+                    continue
+                x = smallest_label(label, explored + [label])
+                if x < smallest:
+                    smallest = x
+            return smallest
+
+        for label in graph:
+            resolved[label] = smallest_label(label)
+        return resolved
+
+    def _second_pass(self, blobmap, resolved):
+        """In the blobmap, replace each label by its "resolved"
+        value"""
+        for pixel in blobmap.iter_area():
+            label = pixel.col.g
+            if label == 0:
+                continue
+            label = resolved[label]
+            blobmap.set_color_at(pixel.i, pixel.j, Color.grey(label))
+
+    @property
+    def blobmap(self):
+        if self._blobmap is None:
+            blobmap, graph = self._first_pass()
+            resolved = self._resolve_labels(graph)
+            self._second_pass(blobmap, resolved)
+            self._blobmap = blobmap
+        return self._blobmap
+
+    @property
+    def blobs(self):
+        if self._blobs is None:
+            blobs = {}
+            for pixel in self.image.iter_area():
+                label = self.blobmap.get_pixel_at(pixel.i, pixel.j).col.g
+                if label == 0:
+                    continue
+                if label in blobs:
+                    blobs[label].append(pixel)
+                else:
+                    blobs[label] = [pixel]
+            self._blobs = list(blobs.values())
+        return self._blobs

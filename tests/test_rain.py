@@ -1,7 +1,7 @@
 import unittest
 from nlannuzel.sgrain.rain import RainAreas
 from nlannuzel.sgrain.geo import Location
-from nlannuzel.sgrain.graph import Image, Pixel
+from nlannuzel.sgrain.graph import Image, Pixel, Color
 import datetime
 
 class TestRain(unittest.TestCase):
@@ -37,6 +37,52 @@ class TestRain(unittest.TestCase):
         location2 = rain.pixel_to_location(pixel)
         self.assertAlmostEqual(location1.lon, location2.lon, 3)
         self.assertAlmostEqual(location1.lat, location2.lat, 3)
+
+    def test_intensity_at(self):
+        rain = RainAreas()
+        rain.intensity_map = Image(217, 120)
+        location = Location(1.313383, 103.815203)
+        p = rain.location_to_pixel(location)
+        rain.intensity_map.set_color_at(p.i, p.j, Color.grey(1))
+        self.assertEqual(rain.intensity_at(location), 1)
+        self.assertAlmostEqual(rain.intensity_at(location, 1), 1/9)
+        self.assertAlmostEqual(rain.intensity_at(location, 2), 1/25)
+
+    def test_noise(self):
+        rain = RainAreas()
+        rain.intensity_map = Image(rows = [[Color.grey(v) for v in row] for row in [
+            [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+            [ 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0 ],
+            [ 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0 ],
+            [ 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0 ],
+            [ 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0 ],
+            [ 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0 ],
+            [ 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0 ],
+            [ 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0 ],
+            [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 ],
+            ]])
+
+        def count_blobs_of_size(n):
+            count = 0
+            for blob in rain.filter_blobs(lambda blob:len(blob)==n):
+                count += 1
+            return count
+
+        self.assertEqual(len(rain.blobs), 8)
+        self.assertEqual(count_blobs_of_size(25), 1)
+        self.assertEqual(count_blobs_of_size(18), 1)
+        self.assertEqual(count_blobs_of_size(6), 2)
+        self.assertEqual(count_blobs_of_size(2), 2)
+        self.assertEqual(count_blobs_of_size(1), 2)
+
+        rain.original_image = rain.intensity_map
+        rain.remove_noise()
+        self.assertEqual(len(rain.blobs), 6)
+        self.assertEqual(count_blobs_of_size(25), 1)
+        self.assertEqual(count_blobs_of_size(18), 1)
+        self.assertEqual(count_blobs_of_size(6), 2)
+        self.assertEqual(count_blobs_of_size(2), 2)
+        self.assertEqual(count_blobs_of_size(1), 0)
 
 if __name__ == '__main__':
     unittest.main()

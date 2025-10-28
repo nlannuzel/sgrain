@@ -1,5 +1,5 @@
 from nlannuzel.sgrain.geo import Location
-from nlannuzel.sgrain.graph import Color, Image, Pixel, YELLOW
+from nlannuzel.sgrain.graph import Color, Image, Pixel, YELLOW, BLACK, BlobFinder
 import png
 import requests
 import datetime
@@ -64,6 +64,7 @@ class RainAreas:
 
     def __init__(self, cache_dir = None):
         self.cache_dir = "/tmp" if cache_dir is None else cache_dir
+        self._blobs = None
 
     def round_to_previous_5_min(self, dt):
         """Round the time down to previous 5 minute, because images on
@@ -168,7 +169,7 @@ class RainAreas:
         right, d above, and d below."""
         pixel = self.location_to_pixel(location)
         if d == 0:
-            return self.intensity_map.get_pixel(pixel).col.r
+            return self.intensity_map.get_pixel(pixel).col.g
 
         # averaging around pixel's neighbours
         count = 0
@@ -176,21 +177,47 @@ class RainAreas:
         box = self.intensity_map.box_around(pixel, d)
         for pn in self.intensity_map.iter_rectangle_area(box):
             count += 1
-            intensity += pn.col.r
+            intensity += pn.col.g
         intensity /= count
         return intensity
 
     def save_intensity_map(self, file_path, location = None, color = YELLOW, d = 0):
-        """save the intensity map to a PNG file, optionally, draw the location as a dot or square. The intensity is scaled from 0..31 to 0..255"""
+        """save the intensity map to a PNG file, optionally, draw the
+        location as a dot or square. The intensity is scaled from
+        0..31 to 0..255"""
         pixel = self.location_to_pixel(location)
-        def greyscale(pixel):
-            intensity = self.intensity_map.get_pixel(pixel).col.r
+        def brighten(pixel):
+            intensity = self.intensity_map.get_pixel(pixel).col.g
             grey_level = round(self._interpolate(0, 0, 31, 255, intensity))
             return Color.grey(grey_level)
-        output_image = self.intensity_map.transform(greyscale)
+        output_image = self.intensity_map.transform(brighten)
         if (d == 0):
             output_image.set_color_at(pixel.i, pixel.j, color)  # draw a dot
         else:
-            box = self.output_image.box_around(pixel, d)
-            self.output_image.draw_box(box, color)
+            box = output_image.box_around(pixel, d)
+            output_image.draw_box(box, color)
         png.from_array(output_image.to_rgb_rows(), mode = 'RGB').save(file_path)
+
+    @property
+    def blobs(self):
+        if self._blobs is None:
+            self._blobs = BlobFinder(self.intensity_map).blobs
+        return self._blobs
+
+    def filter_blobs(self, f):
+        """returns all blobs satisfying f(blob)==True, where f() is a
+        function taking a list of Pixel as argument and returing True
+        or False"""
+        for blob in self.blobs:
+            if f(blob):
+                yield blob
+
+    def remove_noise(self):
+        """removes all blobs of size 1 which are usualy noise on the
+        radar image"""
+        leavers = [b for b in self.filter_blobs(lambda b:len(b) == 1)]
+        for noise in leavers:
+            for pixel in noise:
+                self.original_image.set_color_at(pixel.i, pixel.j, BLACK)
+                self.intensity_map.set_color_at(pixel.i, pixel.j, BLACK)
+            self.blobs.remove(noise)
