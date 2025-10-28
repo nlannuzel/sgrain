@@ -1,7 +1,8 @@
 """Classes for basic in-memory image handling"""
 
 class Color:
-    """A color stored as red, green, blue 8 bits components"""
+    """A color stored as either a grey level, or red, green, blue 8
+    bits components"""
     def __init__(self, r, g, b):
         """Build a new Color object from r, g, and b components
         between 0 and 255"""
@@ -13,12 +14,32 @@ class Color:
                 raise Exception("color cannot be negative")
             if c > 255:
                 raise Exception("only 8 bits is supported")
+        if r == b and r == g and b == g:
+            # grey level
+            self.g = g
+            self.r = None
+            return
         self.r = r
         self.g = g
         self.b = b
 
+    def is_grey(self):
+        return self.r is None
+
     def __repr__(self):
+        if self.is_grey():
+            return f"Color({self.g})"
         return f"Color({self.r},{self.r},{self.b})"
+
+    def distance_to(self, other):
+        """returns the distance between this color and another one"""
+        if self.is_grey():
+            if other.is_grey():
+                return ( 3*(other.g - self.g)**2 )**0.5
+            return ((other.r - self.g)**2 + (other.g - self.g)**2 + (other.b - self.g)**2)**0.5
+        if other.is_grey():
+            return ((other.g - self.r)**2 + (other.g - self.g)**2 + (other.g - self.g)**2)**0.5
+        return ((other.r - self.r)**2 + (other.g - self.g)**2 + (other.b - self.b)**2)**0.5
 
     def posterize(self, palette):
         """find the closest color in a palette, and return the index
@@ -27,18 +48,14 @@ class Color:
         parameters:
           palette: tuples of Color
         returns:
-          position of the neares color in the palette
+          position of the nearest color in the palette
         """
-        min_d = 3 * (255**2)
-        debug = False
+        min_d = None
         for i in range(0, len(palette)):
-            ref = palette[i]
-            d = abs(ref.r - self.r)**2 + abs(ref.g - self.g)**2 + abs(ref.b - self.b)**2
-            if min_d < d:
-                continue
-            min_d = d
-            min_i = i
-        min_d = min_d**1/2
+            d = self.distance_to(palette[i])
+            if min_d is None or min_d > d:
+                min_d = d
+                min_i = i
         return min_i
 
     @classmethod
@@ -56,7 +73,7 @@ PURPLE  = Color( 255, 0  , 255 )
 CYAN    = Color( 0  , 255, 255 )
 
 class Pixel:
-    """A set of i and j coordinates, and optiuonally a Color"""
+    """A set of i and j coordinates, and optionally a Color"""
     def __init__(self, i, j, col = None):
         if i < 0 or j < 0:
             raise Exception("coordinates cannot be negative")

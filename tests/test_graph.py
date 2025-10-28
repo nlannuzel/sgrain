@@ -1,7 +1,12 @@
 import unittest
-from nlannuzel.sgrain.graph import Color, Pixel, Box
+from nlannuzel.sgrain.graph import Color, Pixel, Box, BLACK, WHITE, RED
 
 class TestGraph(unittest.TestCase):
+    def test_color(self):
+        self.assertTrue(Color.grey(111).is_grey())
+        self.assertTrue(BLACK.is_grey())
+        self.assertFalse(RED.is_grey())
+
     def test_posterize(self):
 
         palette = [Color(r, g, b) for r, g, b, in [
@@ -21,6 +26,14 @@ class TestGraph(unittest.TestCase):
         self.assertEqual( Color(254, 254, 0  ).posterize(palette), 2 )
         self.assertEqual( Color(255, 255, 0  ).posterize(palette), 2 )
         self.assertEqual( Color(255, 255, 255).posterize(palette), 2 )
+
+    def test_distance(self):
+        a = Color(0, 0, 0)
+        b = Color(127, 0, 0)
+        c = Color(255, 0, 0)
+        d = Color(0, 127, 0)
+        self.assertTrue(a.distance_to(b) < a.distance_to(c))
+        self.assertEqual(a.distance_to(b), a.distance_to(d))
 
     def test_box(self):
         with self.assertRaises(RuntimeError):
