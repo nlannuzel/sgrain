@@ -65,6 +65,7 @@ class RainAreas:
     def __init__(self, cache_dir = None):
         self.cache_dir = "/tmp" if cache_dir is None else cache_dir
         self._blobs = None
+        self._intensity_map = None
 
     def round_to_previous_5_min(self, dt):
         """Round the time down to previous 5 minute, because images on
@@ -89,14 +90,19 @@ class RainAreas:
 
     def _read_image_from_cache(self):
         """read the local image file, and load it in memory"""
-        def to_bw(pixel):
-            intensity = pixel.col.posterize(self.color_scale)
-            return Color.grey(intensity)
         with open(self.filepath, "rb") as f:
             reader = png.Reader(f)
             width, height, data, info = reader.read()
             self.original_image = Image.from_rgb_rows(rows = data, has_alpha = True)
-        self.intensity_map = self.original_image.transform(to_bw)
+
+    @property
+    def intensity_map(self):
+        def to_bw(pixel):
+            intensity = pixel.col.posterize(self.color_scale)
+            return Color.grey(intensity)
+        if self._intensity_map is None:
+            self._intensity_map = self.original_image.transform(to_bw)
+        return self._intensity_map
 
     def _try_to_load_image(self):
         """Download the image if needed, then load it in memory"""
