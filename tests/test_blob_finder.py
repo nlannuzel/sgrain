@@ -38,13 +38,6 @@ class TestBlobFinder(unittest.TestCase):
                         return True
             return False
 
-        def blobs_overlap(b1, b2):
-            for p1 in b1:
-                for p2 in b2:
-                    if p1.i == p2.i and p1.j == p2.j:
-                        return True
-            return False
-
         def blobs_are_contiguous(b1, b2):
             for p1 in b1:
                 for p2 in b2:
