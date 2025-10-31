@@ -1,5 +1,5 @@
 import unittest
-from nlannuzel.sgrain.graph import Color, Pixel, Image, BLACK, BlobFinder
+from nlannuzel.sgrain.graph import Color, Image, BLACK, BlobFinder
 
 class TestBlobFinder(unittest.TestCase):
     def test_find_blob(self):

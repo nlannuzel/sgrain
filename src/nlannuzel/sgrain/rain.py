@@ -110,7 +110,7 @@ class RainAreas:
         self.filepath = f"{self.cache_dir}/{self.filename}"
         try:
             self._read_image_from_cache()
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self._download_image_to_cache()
             self._read_image_from_cache()
 

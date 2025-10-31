@@ -1,9 +1,8 @@
 import unittest
-import requests
 import requests_mock
 from nlannuzel.sgrain.rain import RainAreas
 from nlannuzel.sgrain.geo import Location
-from nlannuzel.sgrain.graph import Image, Pixel, Color
+from nlannuzel.sgrain.graph import Pixel, Color
 import datetime
 
 def mock_load_image(rain, year, month, day, hour, minute):

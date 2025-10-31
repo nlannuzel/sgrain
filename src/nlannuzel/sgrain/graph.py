@@ -1,5 +1,5 @@
 """Classes for basic in-memory image handling"""
-from math import atan, degrees, sqrt
+from math import atan, degrees
 
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
@@ -253,7 +253,6 @@ class Image:
     def get_pixel(self, pixel):
         """Update the given Pixel object with the color stored at
         location(i, j)"""
-        row = self.rows[pixel.j]
         pixel.col = self.get_color_at(pixel.i, pixel.j)
         return pixel
 
