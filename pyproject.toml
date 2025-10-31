@@ -10,7 +10,7 @@ where = ["src"]
 
 [project]
 name = "nlannuzel.sgrain"
-version = "1.0.2"
+version = "1.0.3"
 authors = [
   { name = "Nicolas Lannuzel", email = "nlannuzel@gmail.com" },
 ]
@@ -32,6 +32,7 @@ dependencies = [
 
 [project.scripts]
 rain-intensity-at = "nlannuzel.sgrain:rain_intensity_at"
+nearest-rain = "nlannuzel.sgrain:nearest_rain_spot"
 
 [project.urls]
 Homepage = "https://github.com/nlannuzel/sgrain"
