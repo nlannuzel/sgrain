@@ -1,5 +1,5 @@
 import unittest
-from nlannuzel.sgrain.graph import Color, Pixel, Image, BLACK, BlobFinder
+from nlannuzel.sgrain.graph import Color, Image, BLACK, BlobFinder
 
 class TestBlobFinder(unittest.TestCase):
     def test_find_blob(self):
@@ -30,13 +30,6 @@ class TestBlobFinder(unittest.TestCase):
                 if len(blob) == n:
                     count += 1
             return count
-
-        def blobs_overlap(b1, b2):
-            for p1 in b1:
-                for p2 in b2:
-                    if p1.i == p2.i and p1.j == p2.j:
-                        return True
-            return False
 
         def blobs_overlap(b1, b2):
             for p1 in b1:

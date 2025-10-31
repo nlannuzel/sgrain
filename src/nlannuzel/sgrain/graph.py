@@ -1,5 +1,5 @@
 """Classes for basic in-memory image handling"""
-from math import atan, degrees, sqrt
+from math import atan, degrees
 
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
@@ -177,20 +177,41 @@ class Image:
         if rows is None:
             if width is None or height is None:
                 raise RuntimeError("at least width and height or rows must be given")
-            rows = []
-            for j in range(0, height):
-                row = []
-                row.extend([ BLACK for i in range(0, width) ])
-                rows.append(row)
-        self.rows = rows
-        self.height = len(rows)
-        self.width = len(rows[0])
+        self._rows = rows
+        self._height = height
+        self._width = width
+        self._box = None
 
     def __repr__(self):
         return f"Image ({self.width}x{self.height})"
 
+    @property
+    def rows(self):
+        if self._rows is None:
+            self._rows = []
+            for j in range(0, self.height):
+                row = []
+                row.extend([ BLACK for i in range(0, self.width) ])
+                self._rows.append(row)
+        return self._rows
+
+    @property
+    def height(self):
+        if self._height is None:
+            self._height = len(self.rows)
+        return self._height
+
+    @property
+    def width(self):
+        if self._width is None:
+            self._width = len(self.rows[0])
+        return self._width
+
+    @property
     def box(self):
-        return Box.from_coordinates(0, 0, self.width - 1, self.height - 1)
+        if self._box is None:
+            self._box = Box.from_coordinates(0, 0, self.width - 1, self.height - 1)
+        return self._box
 
     @classmethod
     def from_rgb_rows(cls, rows, has_alpha = False):
@@ -232,7 +253,6 @@ class Image:
     def get_pixel(self, pixel):
         """Update the given Pixel object with the color stored at
         location(i, j)"""
-        row = self.rows[pixel.j]
         pixel.col = self.get_color_at(pixel.i, pixel.j)
         return pixel
 
@@ -249,7 +269,7 @@ class Image:
 
     def iter_area(self):
         """Returns an iterator on all pixels of this image"""
-        return self.iter_rectangle_area(self.box())
+        return self.iter_rectangle_area(self.box)
 
     def iter_rectangle_boundary(self, box):
         """Returns an iterator on all pixels within the boundary of

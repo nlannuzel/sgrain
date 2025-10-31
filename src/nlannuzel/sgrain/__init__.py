@@ -1,5 +1,4 @@
 import datetime
-import time
 import argparse
 from nlannuzel.sgrain.rain import RainAreas
 from nlannuzel.sgrain.geo import Location

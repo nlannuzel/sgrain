@@ -1,5 +1,5 @@
 import unittest
-from nlannuzel.sgrain.graph import Color, Pixel, Box, BLACK, WHITE, RED
+from nlannuzel.sgrain.graph import Color, Pixel, Box, BLACK, RED
 
 class TestGraph(unittest.TestCase):
     def test_color(self):
