@@ -95,5 +95,14 @@ class TestRain(unittest.TestCase):
         self.assertEqual(count_blobs_of_size(   2 ), 7 )
         self.assertEqual(count_blobs_of_size(   1 ), 0 )  # gone!
 
+    def test_rain_distance(self):
+        rain = RainAreas()
+        mock_load_image(rain, 2025, 10, 15, 16, 30)
+        location = Location(1.313383, 103.815203)
+        nearest_rain = rain.nearest_rain_location(location)
+        self.assertFalse(nearest_rain == None)
+        d = location.distance_to(nearest_rain)
+        self.assertAlmostEqual(d, 0.30, 2)  # 300m is about 1 pixel
+
 if __name__ == '__main__':
     unittest.main()

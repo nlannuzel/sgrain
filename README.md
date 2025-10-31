@@ -1,9 +1,9 @@
 # sgrain
 
 Tells if it's currently raining at a given latitude and longitude in
-Singapore. The data comes from rain radar images at
-https://www.weather.gov.sg/weather-rain-area-50km/. The image are
-updated every 5 minutes.
+Singapore, or if there's rain nearbie. The data comes from rain radar
+images at https://www.weather.gov.sg/weather-rain-area-50km/. The
+image are updated every 5 minutes.
 
 
 **Link to project:** https://github.com/nlannuzel/sgrain
@@ -17,9 +17,15 @@ pip3 install nlannuzel.sgrain
 ## Package usage
 ### With the built-in script:
 ```shell
-rain-intensity-at -a 1.313383 -o 103.815203 -n
+LAT=1.313383
+LONG=103.815203
+# shows rain here:
+rain-intensity-at -a $LAT -o $LONG -n
+# shows distance to nearest rain spot:
+nearest-rain -a $LAT -o $LONG -c $(pwd) -n
+# shows location of nearest rain spot:
+nearest-rain -a $LAT -o $LONG -c $(pwd) -n -l
 ```
-
 ### With a custom script:
 ```python
 #!/usr/bin/env python3
@@ -35,15 +41,17 @@ rain.load_image()
 # https://maps.app.goo.gl/9aA7i8chryYwuhUT8
 picnic_spot = Location(1.313383, 103.815203)
 
-# Remove noise (isolated pixels that often exist in the raw image)
-rain.remove_noise()
-
 # Returns a number from 0 to 31
 intensity = rain.intensity_at(picnic_spot)
 
-message = f"At location {picnic_spot}, time {rain.rounded_dt}: "
+message = f"At location {picnic_spot}, time {rain.image_time}: "
 if intensity == 0:
-	message += "it's not raining."
+    nearest_rain = rain.nearest_rain_location(picnic_spot)
+    if nearest_rain is None:
+        msg += "it's not raining around here."
+    else:
+        d = picnic_spot.distance_to(nearest_rain)
+        message += f"it's not raining, but there's rain about {d:.2f}km away."
 elif intensity < 10:
 	msg += "it's raining a little bit ({intensity}), bring a umbrella."
 else:
