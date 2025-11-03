@@ -13,8 +13,6 @@ class Color:
         for c in (r, g, b):
             if c < 0:
                 raise Exception("color cannot be negative")
-            if c > 255:
-                raise Exception("only 8 bits is supported")
         if r == b and r == g and b == g:
             # grey level
             self.g = g
