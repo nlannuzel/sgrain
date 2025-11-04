@@ -26,6 +26,7 @@ def mock_load_image(rain, test_image, mock_urlopen):
 
     rain.load_image(dt)
 
+
 class TestRain(unittest.TestCase):
     def test_round(self):
         rain = RainAreas()

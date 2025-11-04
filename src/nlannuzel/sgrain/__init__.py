@@ -3,6 +3,7 @@ import argparse
 from nlannuzel.sgrain.rain import RainAreas
 from nlannuzel.sgrain.geo import Location
 
+
 def rain_intensity_at():
     parser = argparse.ArgumentParser(
         prog = 'rain-intensity-at',
@@ -41,6 +42,7 @@ def rain_intensity_at():
     if args.output:
         rain.save_intensity_map(file_path = args.output, location = location, d = squaresize)
     print(rain.intensity_at(location, squaresize))
+
 
 def nearest_rain_spot():
     parser = argparse.ArgumentParser(
@@ -83,5 +85,4 @@ def nearest_rain_spot():
     if args.location:
         print(f"{nearest_rain.lat},{nearest_rain.lon}")
         return
-    d = location.distance_to(nearest_rain)
     print(location.distance_to(nearest_rain))

@@ -1,6 +1,7 @@
 """Classes for basic in-memory image handling"""
 from math import atan, degrees
 
+
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
     bits components"""
@@ -88,6 +89,7 @@ YELLOW  = Color( 255, 255, 0   )
 PURPLE  = Color( 255, 0  , 255 )
 CYAN    = Color( 0  , 255, 255 )
 
+
 class Pixel:
     """A set of i and j coordinates, and optionally a Color"""
     def __init__(self, i, j, col = None):
@@ -120,6 +122,7 @@ class Pixel:
         offset = 90 if other.i > self.i else 270
         return offset + degrees(atan((other.j - self.j) / (other.i - self.i)))
 
+
 class Box:
     """an area in the image represented by two pixels at the top-left
     (tl) and bottom-right (br)"""
@@ -138,15 +141,18 @@ class Box:
     def iter_width(self):
         """returns an iterator on the width of this box"""
         return range(self.tl.i, self.br.i+1)
+
     def iter_height(self):
         """returns an iterator on the height of this box"""
         return range(self.tl.j, self.br.j+1)
+
     def iter_area(self):
         """returns an iterator on all the coordinates making up the
         inside and boundary of this box"""
         for j in self.iter_height():
             for i in self.iter_width():
                 yield([i, j])
+
     def iter_boundary(self):
         """returns an iterator on all the coordinates making up
         boundary of this box"""
@@ -156,6 +162,7 @@ class Box:
         for i in range(self.tl.i + 1, self.br.i):
             yield([i, self.tl.j])
             yield([i, self.br.j])
+
 
 class Image:
     """a 8 bits image in memory stored as rows of Color"""
@@ -405,6 +412,7 @@ class BlobFinder:
 """
 
         resolved = {}
+
         def smallest_label(label, explored = []):
             if label in resolved:
                 return resolved[label]

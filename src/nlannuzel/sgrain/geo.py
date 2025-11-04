@@ -1,5 +1,6 @@
 from math import sqrt, cos, asin, radians
 
+
 class Location:
     def __init__(self, lat, lon):
         self.lat = lat

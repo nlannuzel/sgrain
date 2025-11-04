@@ -87,7 +87,6 @@ class RainAreas:
             with open(self.filepath, "wb") as f:
                 shutil.copyfileobj(response, f)
 
-
     def _read_image_from_cache(self):
         """read the local image file, and load it in memory"""
         with open(self.filepath, "rb") as f:
@@ -250,7 +249,6 @@ class RainAreas:
                 if min_distance is None or d < min_distance:
                     min_distance = d
                     rain_pixel = p
-                    blob = b
         if min_distance is None:
             return None
         rain_location = self.pixel_to_location(rain_pixel)
