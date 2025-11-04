@@ -4,6 +4,7 @@ import png
 import requests
 import datetime
 import time
+import os
 
 class RainAreas:
     # Coordinates from the HTML/js code of
@@ -63,7 +64,7 @@ class RainAreas:
     ]]
 
     def __init__(self, cache_dir = None):
-        self.cache_dir = "/tmp" if cache_dir is None else cache_dir
+        self._cache_dir = cache_dir
         self._blobs = None
         self._intensity_map = None
 
@@ -94,6 +95,15 @@ class RainAreas:
             reader = png.Reader(f)
             width, height, data, info = reader.read()
             self.original_image = Image.from_rgb_rows(rows = data, has_alpha = True)
+
+    @property
+    def cache_dir(self):
+        if self._cache_dir is None:
+            if 'TMPDIR' in os.environ:
+                self._cache_dir = os.environ['TMPDIR']
+            else:
+                self._cache_dir = '/tmp'
+        return self._cache_dir
 
     @property
     def intensity_map(self):
