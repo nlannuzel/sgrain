@@ -25,6 +25,8 @@ rain-intensity-at -a $LAT -o $LONG -n
 nearest-rain -a $LAT -o $LONG -c $(pwd) -n
 # shows location of nearest rain spot:
 nearest-rain -a $LAT -o $LONG -c $(pwd) -n -l
+# shows location of nearest rain spot of significant size (count of 20 pixels on the rain map):
+nearest-rain -a $LAT -o $LONG -c $(pwd) -s 20 -l
 ```
 ### With a custom script:
 ```python
@@ -46,7 +48,7 @@ intensity = rain.intensity_at(picnic_spot)
 
 message = f"At location {picnic_spot}, time {rain.image_time}: "
 if intensity == 0:
-    nearest_rain = rain.nearest_rain_location(picnic_spot)
+    nearest_rain = rain.nearest_rain_location(picnic_spot, min_size = 10)
     if nearest_rain is None:
         msg += "it's not raining around here."
     else:
@@ -85,16 +87,27 @@ Verify that the module works, this command should display between 0 and 31:
 Open the home-assistant GUI in a browser. If not already done, install the File Editor add-on. Open the configuration.yaml file (`/homeassistant/configuration.yaml`), and add a section like below:
 ```yaml
 command_line:
-  sensor:
-    command: /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n
-    name: rain-sensor
-    unique_id: rain
-    scan_interval: 300
-    icon: mdi:weather-pouring
-    availability: 1
-    #device_class: None
-    state_class: MEASUREMENT
-    value_template: '{{ value | float | round(2) }}'
+  - sensor:
+      command: sleep 5 && /config/venv/bin/python3 /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n
+      name: rain-sensor
+      unique_id: rain
+      scan_interval: 300
+      icon: mdi:weather-pouring
+      availability: 1
+      #device_class: None
+      state_class: MEASUREMENT
+      value_template: '{{ value | float | round(2) }}'
+  - sensor:
+      command: /config/venv/bin/python3 /config/venv/bin/nearest-rain -a LATITUDE -o LONGITUDE -n -s 10
+      name: rain-sensor-distance
+      unique_id: rain-distance
+      scan_interval: 300
+      icon: mdi:weather-pouring
+      availability: 1
+      device_class: distance
+      unit_of_measurement: km
+      state_class: MEASUREMENT
+      value_template: '{{ value | float | round(2) }}'
 ```
 Be sure to replace LATITUDE and LONGITUDE by the the actual coordinates. Finally, in the "developer tools", validate and then reload the config. You should have a new sensor available in Home Assistant.
 
