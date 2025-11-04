@@ -237,14 +237,16 @@ class RainAreas:
                 self.intensity_map.set_color_at(pixel.i, pixel.j, BLACK)
             self.blobs.remove(noise)
 
-    def nearest_rain_location(self, location):
-        """returns the rain spot location that is the nearest to this
-        location"""
+    def nearest_rain_location(self, location, min_size = None):
+        """returns the rain spot location (bigger than min_size, if
+        given) that is the nearest to this location"""
         loc_pixel = self.location_to_pixel(location)
         min_distance = None
         rain_pixel = None
         blob = None
         for b in self.blobs:
+            if min_size is not None and len(b) < min_size:
+                continue
             for p in b:
                 d = loc_pixel.distance_to(p)
                 if min_distance is None or d < min_distance:
