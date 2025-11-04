@@ -1,10 +1,11 @@
 from nlannuzel.sgrain.geo import Location
 from nlannuzel.sgrain.graph import Color, Image, Pixel, YELLOW, BLACK, BlobFinder
 import png
-import requests
+import urllib.request
 import datetime
 import time
 import os
+import shutil
 
 class RainAreas:
     # Coordinates from the HTML/js code of
@@ -82,12 +83,10 @@ class RainAreas:
     def _download_image_to_cache(self):
         """Download the remote image and save it in a file locally"""
         url = f"https://www.weather.gov.sg/files/rainarea/50km/v2/{self.filename}"
-        resp = requests.get(url, timeout = 10)
-        resp.raise_for_status()
-        if resp.status_code != 200:
-            raise Exception("status code is not 200")
-        with open(self.filepath, "wb") as f:
-            f.write(resp.content)
+        with urllib.request.urlopen(url) as response:
+            with open(self.filepath, "wb") as f:
+                shutil.copyfileobj(response, f)
+
 
     def _read_image_from_cache(self):
         """read the local image file, and load it in memory"""
@@ -132,12 +131,12 @@ class RainAreas:
             try:
                 self._try_to_load_image()
                 return
-            except requests.HTTPError as e:
-                if e.response.status_code == 403:  # 403 is returned when the image is not yet available
+            except urllib.error.HTTPError as e:
+                if e.code == 403:  # 403 is returned when the image is not yet available
                     self.image_time -= datetime.timedelta(minutes=5)  # Try 5 minutes before
                     max_tries -= 1
                 else:
-                    raise RuntimeError(f"Unable to download the rain areas image: the server returned a unexpected status code {e.response.status_code}")
+                    raise RuntimeError(f"Unable to download the rain areas image: the server returned a unexpected status code {e.code}: {e.reason}")
         raise RuntimeError("Unable to download the rain areas image")
 
     def location_is_inside_map(self, location):
