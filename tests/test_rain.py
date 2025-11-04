@@ -1,11 +1,12 @@
 import unittest
-import requests_mock
+from unittest.mock import patch, MagicMock
 from nlannuzel.sgrain.rain import RainAreas
 from nlannuzel.sgrain.geo import Location
 from nlannuzel.sgrain.graph import Pixel, Color
 import datetime
 
-def mock_load_image(rain, test_image):
+@patch("urllib.request.urlopen")
+def mock_load_image(rain, test_image, mock_urlopen):
     # dpsri_70km_2025101516e300000dBR.dpsri.png
     # image from 2025/10/15 16:30
     test_images = {
@@ -18,11 +19,12 @@ def mock_load_image(rain, test_image):
     }
     year, month, day, hour, minute = test_times[test_image]
     dt = datetime.datetime(year, month, day, hour, minute)
-    filename = f"dpsri_70km_{year}{month:02d}{day:02d}{hour:02d}{minute:02d}0000dBR.dpsri.png"
-    url = f"https://www.weather.gov.sg/files/rainarea/50km/v2/{filename}"
-    with requests_mock.Mocker() as m:
-        m.get(url, content = test_images[test_image])
-        rain.load_image(dt)
+
+    mock_response = MagicMock()
+    mock_response.read.side_effect = [test_images[test_image], '']  # copyfileobj() calls read() multiple times so we use side_effect instead of return_value to avoid a endless loop
+    mock_urlopen.return_value.__enter__.return_value = mock_response
+
+    rain.load_image(dt)
 
 class TestRain(unittest.TestCase):
     def test_round(self):

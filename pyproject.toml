@@ -27,7 +27,6 @@ classifiers = [
 keywords = ["weather", "rain", "radar", "singapore"]
 dependencies = [
     "pypng",
-    "requests",
 ]
 
 [project.scripts]
