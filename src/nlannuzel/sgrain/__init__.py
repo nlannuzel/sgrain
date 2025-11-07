@@ -80,10 +80,7 @@ def nearest_rain_spot():
     min_size = int(args.minimum_size) if args.minimum_size else None
     nearest_rain = rain.nearest_rain_location(location, min_size)
     if nearest_rain is None:
-        if args.location:
-            print("NaN")
-            return
-        print(float('inf'))
+        print(100.0)   # home assistant doesn't seem to understand "NaN" or "inf"
         return
     if args.location:
         print(f"{nearest_rain.lat},{nearest_rain.lon}")
