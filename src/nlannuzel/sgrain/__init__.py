@@ -77,8 +77,8 @@ def nearest_rain_spot():
         lon = float(args.longitude))
     if args.filter_noise:
         rain.remove_noise()
-    min_size = args.minimum_size if args.minimum_size else None
-    nearest_rain = rain.nearest_rain_location(location, min_size = None)
+    min_size = int(args.minimum_size) if args.minimum_size else None
+    nearest_rain = rain.nearest_rain_location(location, min_size)
     if nearest_rain is None:
         if args.location:
             print("NaN")
