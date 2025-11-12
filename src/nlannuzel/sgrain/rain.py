@@ -227,10 +227,10 @@ class RainAreas:
             if f(blob):
                 yield blob
 
-    def remove_noise(self):
-        """removes all blobs of size 1 which are usualy noise on the
-        radar image"""
-        leavers = [b for b in self.grep_blobs(lambda b:len(b) == 1)]
+    def remove_blobs(self, max_size = 1):
+        """removes all blobs with a size equal or less than max_size
+        and less. Used to remove noise on the radar image"""
+        leavers = [b for b in self.grep_blobs(lambda b:len(b) <= max_size)]
         for noise in leavers:
             for pixel in noise:
                 self.original_image.set_color_at(pixel.i, pixel.j, BLACK)
