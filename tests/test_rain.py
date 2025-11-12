@@ -73,7 +73,7 @@ class TestRain(unittest.TestCase):
     def test_intensity_at_big(self):
         rain = RainAreas()
         mock_load_image(rain, 'big_blob')
-        rain.remove_noise()
+        rain.remove_blobs()
 
     def test_noise(self):
         rain = RainAreas()
@@ -81,7 +81,7 @@ class TestRain(unittest.TestCase):
 
         def count_blobs_of_size(n):
             count = 0
-            for blob in rain.filter_blobs(lambda blob:len(blob)==n):
+            for blob in rain.grep_blobs(lambda blob:len(blob)==n):
                 count += 1
             return count
 
@@ -98,7 +98,7 @@ class TestRain(unittest.TestCase):
         self.assertEqual(count_blobs_of_size(   2 ),  7          )
         self.assertEqual(count_blobs_of_size(   1 ), noise_count )  # noise
 
-        rain.remove_noise()
+        rain.remove_blobs()
         self.assertEqual(len(rain.blobs), initial_blobs_count - noise_count)
         self.assertEqual(count_blobs_of_size( 186 ), 1 )
         self.assertEqual(count_blobs_of_size(  92 ), 1 )
@@ -117,7 +117,8 @@ class TestRain(unittest.TestCase):
         location = rain.pixel_to_location(pixel_next_to_small_blob)
         d = location.distance_to(rain.nearest_rain_location(location))
         self.assertAlmostEqual(d, 0.30, 2)  # 300m is about 1 pixel
-        d = location.distance_to(rain.nearest_rain_location(location, min_size = 20))
+        rain.remove_blobs(max_size = 20)
+        d = location.distance_to(rain.nearest_rain_location(location))
         self.assertAlmostEqual(d, 2.98, 2)  # now further away
 
 if __name__ == '__main__':

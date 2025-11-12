@@ -219,7 +219,7 @@ class RainAreas:
             self._blobs = BlobFinder(self.intensity_map).blobs
         return self._blobs
 
-    def filter_blobs(self, f):
+    def grep_blobs(self, f):
         """returns all blobs satisfying f(blob)==True, where f() is a
         function taking a list of Pixel as argument and returing True
         or False"""
@@ -227,26 +227,24 @@ class RainAreas:
             if f(blob):
                 yield blob
 
-    def remove_noise(self):
-        """removes all blobs of size 1 which are usualy noise on the
-        radar image"""
-        leavers = [b for b in self.filter_blobs(lambda b:len(b) == 1)]
+    def remove_blobs(self, max_size = 1):
+        """removes all blobs with a size equal or less than max_size
+        and less. Used to remove noise on the radar image"""
+        leavers = [b for b in self.grep_blobs(lambda b:len(b) <= max_size)]
         for noise in leavers:
             for pixel in noise:
                 self.original_image.set_color_at(pixel.i, pixel.j, BLACK)
                 self.intensity_map.set_color_at(pixel.i, pixel.j, BLACK)
             self.blobs.remove(noise)
 
-    def nearest_rain_location(self, location, min_size = None):
-        """returns the rain spot location (bigger than min_size, if
-        given) that is the nearest to this location"""
+    def nearest_rain_location(self, location):
+        """returns the rain spot location that is the nearest to this
+        location"""
         loc_pixel = self.location_to_pixel(location)
         min_distance = None
         rain_pixel = None
         blob = None
         for b in self.blobs:
-            if min_size is not None and len(b) < min_size:
-                continue
             for p in b:
                 d = loc_pixel.distance_to(p)
                 if min_distance is None or d < min_distance:

@@ -22,11 +22,11 @@ LONG=103.815203
 # shows rain here:
 rain-intensity-at -a $LAT -o $LONG -n
 # shows distance to nearest rain spot:
-nearest-rain -a $LAT -o $LONG -c $(pwd) -n
+nearest-rain -a $LAT -o $LONG -c $(pwd) -n 1
 # shows location of nearest rain spot:
-nearest-rain -a $LAT -o $LONG -c $(pwd) -n -l
-# shows location of nearest rain spot of significant size (count of 20 pixels on the rain map):
-nearest-rain -a $LAT -o $LONG -c $(pwd) -s 20 -l
+nearest-rain -a $LAT -o $LONG -c $(pwd) -n 1 -l
+# shows location of nearest rain spot of significant size (size of more than 20 pixels on the rain map):
+nearest-rain -a $LAT -o $LONG -c $(pwd) -n 20 -l
 ```
 ### With a custom script:
 ```python
@@ -48,7 +48,8 @@ intensity = rain.intensity_at(picnic_spot)
 
 message = f"At location {picnic_spot}, time {rain.image_time}: "
 if intensity == 0:
-    nearest_rain = rain.nearest_rain_location(picnic_spot, min_size = 10)
+    rain.remove_blobs(max_size = 10)
+    nearest_rain = rain.nearest_rain_location(picnic_spot)
     if nearest_rain is None:
         msg += "it's not raining around here."
     else:
@@ -88,7 +89,7 @@ Open the home-assistant GUI in a browser. If not already done, install the File 
 ```yaml
 command_line:
   - sensor:
-      command: sleep 5 && /config/venv/bin/python3 /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n
+      command: sleep 5 && /config/venv/bin/python3 /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n 1
       name: rain-sensor
       unique_id: rain
       scan_interval: 300
@@ -98,7 +99,7 @@ command_line:
       state_class: MEASUREMENT
       value_template: '{{ value | float | round(2) }}'
   - sensor:
-      command: /config/venv/bin/python3 /config/venv/bin/nearest-rain -a LATITUDE -o LONGITUDE -n -s 10
+      command: /config/venv/bin/python3 /config/venv/bin/nearest-rain -a LATITUDE -o LONGITUDE -n 10
       name: rain-sensor-distance
       unique_id: rain-distance
       scan_interval: 300
