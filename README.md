@@ -51,14 +51,14 @@ if intensity == 0:
     rain.remove_blobs(max_size = 10)
     nearest_rain = rain.nearest_rain_location(picnic_spot)
     if nearest_rain is None:
-        msg += "it's not raining around here."
+        message += "it's not raining around here."
     else:
         d = picnic_spot.distance_to(nearest_rain)
         message += f"it's not raining, but there's rain about {d:.2f}km away."
 elif intensity < 10:
-	msg += "it's raining a little bit ({intensity}), bring a umbrella."
+	message += "it's raining a little bit ({intensity}), bring a umbrella."
 else:
-	msg += "it's raining a lot ({intensity}), cancel the picnic."
+	message += "it's raining a lot ({intensity}), cancel the picnic."
 print(message)
 ```
 
