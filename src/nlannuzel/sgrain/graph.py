@@ -93,7 +93,7 @@ CYAN    = Color( 0  , 255, 255 )
 
 class Pixel:
     """A set of i and j coordinates, and optionally a Color"""
-    def __init__(self, i, j, col = None):
+    def __init__(self, i, j, col=None):
         if i < 0 or j < 0:
             raise Exception("coordinates cannot be negative")
         self.i = i
@@ -135,8 +135,8 @@ class Box:
 
     @classmethod
     def from_coordinates(cls, ia, ja, ib, jb):
-        tl = Pixel(i = ia, j = ja)
-        br = Pixel(i = ib, j = jb)
+        tl = Pixel(i=ia, j=ja)
+        br = Pixel(i=ib, j=jb)
         return Box(tl, br)
 
     def iter_width(self):
@@ -167,7 +167,7 @@ class Box:
 
 class Image:
     """a 8 bits image in memory stored as rows of Color"""
-    def __init__(self, width = None, height = None, rows = None):
+    def __init__(self, width=None, height=None, rows=None):
         """
 
         parameters:
@@ -220,7 +220,7 @@ class Image:
         return self._box
 
     @classmethod
-    def from_rgb_rows(cls, rows, has_alpha = False):
+    def from_rgb_rows(cls, rows, has_alpha=False):
         """generate a new image from a list of (r, g, b, r, g, b...)
         lists instead of list of list Color"""
         skip = 4 if has_alpha else 3
@@ -228,7 +228,7 @@ class Image:
         for row in rows:
             new_row = [ Color(row[i], row[i+1], row[i+2]) for i in range(0, len(row), skip) ]
             new_rows.append(new_row)
-        return Image(rows = new_rows)
+        return Image(rows=new_rows)
 
     def to_rgb_rows(self):
         """export the image as a list of (r, g, b, r, g, b...) lists
@@ -309,7 +309,7 @@ class Image:
         Apply functiopn `func` on all pixels of this image, and return a new image.
         `func` takes a Pixel object and must return a Color object.
         """
-        new_image = Image(width = self.width, height = self.height)
+        new_image = Image(width=self.width, height=self.height)
         for pixel in self.iter_area():
             new_image.set_color_at(pixel.i, pixel.j, func(pixel))
         return new_image
@@ -321,7 +321,7 @@ class Image:
 
 
 class BlobFinder:
-    def __init__(self, image, bg_col = BLACK):
+    def __init__(self, image, bg_col=BLACK):
         self.image = image
         self.bg_col = bg_col
         self._blobmap = None
@@ -415,7 +415,7 @@ class BlobFinder:
 
         resolved = {}
 
-        def smallest_label(label, explored = []):
+        def smallest_label(label, explored=[]):
             if label in resolved:
                 return resolved[label]
             smallest = label

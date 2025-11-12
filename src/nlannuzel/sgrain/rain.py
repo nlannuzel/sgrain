@@ -64,7 +64,7 @@ class RainAreas:
             [ 255, 16 , 251 ]
     ]]
 
-    def __init__(self, cache_dir = None):
+    def __init__(self, cache_dir=None):
         self._cache_dir = cache_dir
         self._blobs = None
         self._intensity_map = None
@@ -92,7 +92,7 @@ class RainAreas:
         with open(self.filepath, "rb") as f:
             reader = png.Reader(f)
             width, height, data, info = reader.read()
-            self.original_image = Image.from_rgb_rows(rows = data, has_alpha = True)
+            self.original_image = Image.from_rgb_rows(rows=data, has_alpha=True)
 
     @property
     def cache_dir(self):
@@ -122,7 +122,7 @@ class RainAreas:
             self._download_image_to_cache()
             self._read_image_from_cache()
 
-    def load_image(self, when = None):
+    def load_image(self, when=None):
         """get the latest available image, try to look back in 5 minutes steps if needed"""
         self.image_time  = self.round_to_previous_5_min( when if when is not None else datetime.datetime.fromtimestamp( time.time()) )
         max_tries = 3
@@ -174,7 +174,7 @@ class RainAreas:
             lat = self._interpolate(0, self.top_left.lat, self.intensity_map.height - 1, self.bottom_right.lat, pixel.j),
         )
 
-    def intensity_at(self, location, d = 0):
+    def intensity_at(self, location, d=0):
         """Returns the rain intensity (int from 0 to 31) at the given
         Location(latitude,logitude).
 
@@ -195,7 +195,7 @@ class RainAreas:
         intensity /= count
         return intensity
 
-    def save_intensity_map(self, file_path, location = None, color = YELLOW, d = 0):
+    def save_intensity_map(self, file_path, location=None, color=YELLOW, d=0):
         """save the intensity map to a PNG file, optionally, draw the
         location as a dot or square. The intensity is scaled from
         0..31 to 0..255"""
@@ -211,7 +211,7 @@ class RainAreas:
         else:
             box = output_image.box_around(pixel, d)
             output_image.draw_box(box, color)
-        png.from_array(output_image.to_rgb_rows(), mode = 'RGB').save(file_path)
+        png.from_array(output_image.to_rgb_rows(), mode='RGB').save(file_path)
 
     @property
     def blobs(self):
@@ -227,7 +227,7 @@ class RainAreas:
             if f(blob):
                 yield blob
 
-    def remove_blobs(self, max_size = 1):
+    def remove_blobs(self, max_size=1):
         """removes all blobs with a size equal or less than max_size
         and less. Used to remove noise on the radar image"""
         leavers = [b for b in self.grep_blobs(lambda b: len(b) <= max_size)]
