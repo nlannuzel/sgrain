@@ -80,6 +80,7 @@ class Color:
             return False
         return True
 
+
 BLACK   = Color( 0  , 0  , 0   )
 WHITE   = Color( 255, 255, 255 )
 RED     = Color( 255, 0  , 0   )
@@ -151,17 +152,17 @@ class Box:
         inside and boundary of this box"""
         for j in self.iter_height():
             for i in self.iter_width():
-                yield([i, j])
+                yield [i, j]
 
     def iter_boundary(self):
         """returns an iterator on all the coordinates making up
         boundary of this box"""
         for j in self.iter_height():
-            yield([self.tl.i, j])
-            yield([self.br.i, j])
+            yield [self.tl.i, j]
+            yield [self.br.i, j]
         for i in range(self.tl.i + 1, self.br.i):
-            yield([i, self.tl.j])
-            yield([i, self.br.j])
+            yield [i, self.tl.j]
+            yield [i, self.br.j]
 
 
 class Image:
@@ -237,7 +238,7 @@ class Image:
             new_row = []
             for i in range(0, len(row)):
                 col = row[i]
-                a = [col.g, col.g, col.g] if col.is_grey() else [col.r, col.g, col.b] 
+                a = [col.g, col.g, col.g] if col.is_grey() else [col.r, col.g, col.b]
                 new_row.extend(a)
             rows.append(new_row)
         return rows
@@ -270,7 +271,7 @@ class Image:
         """Returns an iterator on all pixels within the given box
         area"""
         for pos in box.iter_area():
-            yield(self.get_pixel_at(pos[0], pos[1]))
+            yield self.get_pixel_at(pos[0], pos[1])
 
     def iter_area(self):
         """Returns an iterator on all pixels of this image"""
@@ -280,7 +281,7 @@ class Image:
         """Returns an iterator on all pixels within the boundary of
         given box area"""
         for pos in box.iter_boundary():
-            yield(self.get_pixel_at(pos[0], pos[1]))
+            yield self.get_pixel_at(pos[0], pos[1])
 
     def box_around(self, pixel, d):
         """Returns a box (size d x d) centered on the given pixel"""
@@ -304,7 +305,7 @@ class Image:
 
     def transform(self, func):
         """
-        
+
         Apply functiopn `func` on all pixels of this image, and return a new image.
         `func` takes a Pixel object and must return a Color object.
         """
@@ -317,6 +318,7 @@ class Image:
         """draw a box in a given color"""
         for i, j in box.iter_boundary():
             self.set_color_at(i, j, color)
+
 
 class BlobFinder:
     def __init__(self, image, bg_col = BLACK):
@@ -376,7 +378,7 @@ class BlobFinder:
             up   = non_bg_color_at(i    , j - 1) if j > 0 else None
             if up is None and left is None:
                 blob_id += 1   # no known neighbours, maybe a new blob ?
-                blobmap.set_color_at(i,j, Color.grey(blob_id))
+                blobmap.set_color_at(i, j, Color.grey(blob_id))
                 graph[blob_id] = []
                 continue
             if up is not None:

@@ -7,16 +7,16 @@ import time
 import os
 import shutil
 
+
 class RainAreas:
     # Coordinates from the HTML/js code of
     # https://www.weather.gov.sg/weather-rain-area-50km but these
     # values give high misalignment. Keeping here for reference.
-    # 
-    # var map_latitude_top = 1.4572;		 
+    #
+    # var map_latitude_top = 1.4572;
     # var map_longitude_left = 103.565;
-    # var map_latitude_bottom = 1.1450;		 
+    # var map_latitude_bottom = 1.1450;
     # var map_longitude_right = 104.130;
-
 
     # Coordinates of covered area estimated by aliging the map image
     # on https://www.weather.gov.sg/weather-rain-area-50km/ with
@@ -26,7 +26,7 @@ class RainAreas:
 
     # 32 levels color scale from
     # https://www.weather.gov.sg/wp-content/themes/wiptheme/images/rain-intensity.jpg
-    # 
+    #
     # Used to convert a RGB color from the rain map image into a
     # intensity from 0 (no rain) to 31 (maximum rain level)
     color_scale = [Color(r, g, b) for r, g, b in [
@@ -126,7 +126,7 @@ class RainAreas:
         """get the latest available image, try to look back in 5 minutes steps if needed"""
         self.image_time  = self.round_to_previous_5_min( when if when is not None else datetime.datetime.fromtimestamp( time.time()) )
         max_tries = 3
-        while(max_tries > 0):
+        while max_tries > 0:
             try:
                 self._try_to_load_image()
                 return
@@ -200,6 +200,7 @@ class RainAreas:
         location as a dot or square. The intensity is scaled from
         0..31 to 0..255"""
         pixel = self.location_to_pixel(location)
+
         def brighten(pixel):
             intensity = self.intensity_map.get_pixel(pixel).col.g
             grey_level = round(self._interpolate(0, 0, 31, 255, intensity))
@@ -229,7 +230,7 @@ class RainAreas:
     def remove_blobs(self, max_size = 1):
         """removes all blobs with a size equal or less than max_size
         and less. Used to remove noise on the radar image"""
-        leavers = [b for b in self.grep_blobs(lambda b:len(b) <= max_size)]
+        leavers = [b for b in self.grep_blobs(lambda b: len(b) <= max_size)]
         for noise in leavers:
             for pixel in noise:
                 self.original_image.set_color_at(pixel.i, pixel.j, BLACK)
@@ -242,7 +243,6 @@ class RainAreas:
         loc_pixel = self.location_to_pixel(location)
         min_distance = None
         rain_pixel = None
-        blob = None
         for b in self.blobs:
             for p in b:
                 d = loc_pixel.distance_to(p)
