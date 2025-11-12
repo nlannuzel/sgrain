@@ -81,7 +81,7 @@ class TestRain(unittest.TestCase):
 
         def count_blobs_of_size(n):
             count = 0
-            for blob in rain.filter_blobs(lambda blob:len(blob)==n):
+            for blob in rain.grep_blobs(lambda blob:len(blob)==n):
                 count += 1
             return count
 

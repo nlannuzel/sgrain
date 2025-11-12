@@ -219,7 +219,7 @@ class RainAreas:
             self._blobs = BlobFinder(self.intensity_map).blobs
         return self._blobs
 
-    def filter_blobs(self, f):
+    def grep_blobs(self, f):
         """returns all blobs satisfying f(blob)==True, where f() is a
         function taking a list of Pixel as argument and returing True
         or False"""
@@ -230,7 +230,7 @@ class RainAreas:
     def remove_noise(self):
         """removes all blobs of size 1 which are usualy noise on the
         radar image"""
-        leavers = [b for b in self.filter_blobs(lambda b:len(b) == 1)]
+        leavers = [b for b in self.grep_blobs(lambda b:len(b) == 1)]
         for noise in leavers:
             for pixel in noise:
                 self.original_image.set_color_at(pixel.i, pixel.j, BLACK)
