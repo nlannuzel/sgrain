@@ -57,7 +57,6 @@ def nearest_rain_spot():
     parser.add_argument('-m', '--minute', help = 'minute to consider instead of current date/time. Will be rounded down to 5 min.' )
     parser.add_argument('-n', '--filter-noise', help = 'remove small pixel blobs (noise) in the radar image.' )
     parser.add_argument('-l', '--location', action = 'store_true', help = 'report coordinates instead of distance' )
-    parser.add_argument('-s', '--minimum-size', help = 'ignore rain blobs smaller than this size' )
     args = parser.parse_args()
 
     rain = RainAreas(cache_dir = args.cachedir if args.cachedir else None)
@@ -77,8 +76,7 @@ def nearest_rain_spot():
         lon = float(args.longitude))
     if args.filter_noise:
         rain.remove_blobs(int(args.filter_noise))
-    min_size = int(args.minimum_size) if args.minimum_size else None
-    nearest_rain = rain.nearest_rain_location(location, min_size)
+    nearest_rain = rain.nearest_rain_location(location)
     if nearest_rain is None:
         print(100.0)   # home assistant doesn't seem to understand "NaN" or "inf"
         return

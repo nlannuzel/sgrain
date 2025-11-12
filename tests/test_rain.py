@@ -117,7 +117,8 @@ class TestRain(unittest.TestCase):
         location = rain.pixel_to_location(pixel_next_to_small_blob)
         d = location.distance_to(rain.nearest_rain_location(location))
         self.assertAlmostEqual(d, 0.30, 2)  # 300m is about 1 pixel
-        d = location.distance_to(rain.nearest_rain_location(location, min_size = 20))
+        rain.remove_blobs(max_size = 20)
+        d = location.distance_to(rain.nearest_rain_location(location))
         self.assertAlmostEqual(d, 2.98, 2)  # now further away
 
 if __name__ == '__main__':
