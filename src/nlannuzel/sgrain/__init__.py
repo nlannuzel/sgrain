@@ -38,7 +38,7 @@ def rain_intensity_at():
         lon = float(args.longitude))
     if args.filter_noise:
         rain.remove_blobs(int(args.filter_noise))
-    squaresize =  int(args.squaresize) if args.squaresize else 0
+    squaresize = int(args.squaresize) if args.squaresize else 0
     if args.output:
         rain.save_intensity_map(file_path=args.output, location=location, d=squaresize)
     print(rain.intensity_at(location, squaresize))
