@@ -118,7 +118,6 @@ class TestGraph(unittest.TestCase):
         self.assertEqual( a[8][0], 5 )
         self.assertEqual( a[8][1], 6 )
 
-
         a = []
         b = Box.from_coordinates(3, 4, 5, 6)
         for i, j in b.iter_boundary():

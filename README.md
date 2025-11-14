@@ -3,7 +3,7 @@
 Tells if it's currently raining at a given latitude and longitude in
 Singapore, or if there's rain nearbie. The data comes from rain radar
 images at https://www.weather.gov.sg/weather-rain-area-50km/. The
-image are updated every 5 minutes.
+images are updated every 5 minutes.
 
 
 **Link to project:** https://github.com/nlannuzel/sgrain
@@ -43,7 +43,7 @@ rain.load_image()
 # https://maps.app.goo.gl/9aA7i8chryYwuhUT8
 picnic_spot = Location(1.313383, 103.815203)
 
-# Returns a number from 0 to 31
+# Returns a number between 0 and 31
 intensity = rain.intensity_at(picnic_spot)
 
 message = f"At location {picnic_spot}, time {rain.image_time}: "
@@ -51,19 +51,19 @@ if intensity == 0:
     rain.remove_blobs(max_size = 10)
     nearest_rain = rain.nearest_rain_location(picnic_spot)
     if nearest_rain is None:
-        msg += "it's not raining around here."
+        message += "it's not raining around here."
     else:
         d = picnic_spot.distance_to(nearest_rain)
         message += f"it's not raining, but there's rain about {d:.2f}km away."
 elif intensity < 10:
-	msg += "it's raining a little bit ({intensity}), bring a umbrella."
+	message += "it's raining a little bit ({intensity}), bring a umbrella."
 else:
-	msg += "it's raining a lot ({intensity}), cancel the picnic."
+	message += "it's raining a lot ({intensity}), cancel the picnic."
 print(message)
 ```
 
 ### In [home-assistant](https://www.home-assistant.io/)
-Log into the home-assistant box, for example by connecting to the console of the VM where HA is installed and running. Then, attach the the homeasistant container:
+Log into the home-assistant box, for example by connecting to the console of the VM where HA is installed and running. Then, attach to the homeasistant container:
 ```shell
 docker exec -ti homeassistant bash
 ```
@@ -80,7 +80,7 @@ cd python_venv
 ./bin/pip3 install nlannuzel.sgrain
 ```
 
-Verify that the module works, this command should display between 0 and 31:
+Verify that the module works, this command should display a number between 0 and 31:
 ```shell
 ./bin/rain-intensity-at -a 1.313383 -o 103.815203 -p 1
 ```

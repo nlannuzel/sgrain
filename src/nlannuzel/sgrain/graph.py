@@ -1,6 +1,7 @@
 """Classes for basic in-memory image handling"""
 from math import atan, degrees
 
+
 class Color:
     """A color stored as either a grey level, or red, green, blue 8
     bits components"""
@@ -79,6 +80,7 @@ class Color:
             return False
         return True
 
+
 BLACK   = Color( 0  , 0  , 0   )
 WHITE   = Color( 255, 255, 255 )
 RED     = Color( 255, 0  , 0   )
@@ -88,9 +90,10 @@ YELLOW  = Color( 255, 255, 0   )
 PURPLE  = Color( 255, 0  , 255 )
 CYAN    = Color( 0  , 255, 255 )
 
+
 class Pixel:
     """A set of i and j coordinates, and optionally a Color"""
-    def __init__(self, i, j, col = None):
+    def __init__(self, i, j, col=None):
         if i < 0 or j < 0:
             raise Exception("coordinates cannot be negative")
         self.i = i
@@ -120,6 +123,7 @@ class Pixel:
         offset = 90 if other.i > self.i else 270
         return offset + degrees(atan((other.j - self.j) / (other.i - self.i)))
 
+
 class Box:
     """an area in the image represented by two pixels at the top-left
     (tl) and bottom-right (br)"""
@@ -131,35 +135,39 @@ class Box:
 
     @classmethod
     def from_coordinates(cls, ia, ja, ib, jb):
-        tl = Pixel(i = ia, j = ja)
-        br = Pixel(i = ib, j = jb)
+        tl = Pixel(i=ia, j=ja)
+        br = Pixel(i=ib, j=jb)
         return Box(tl, br)
 
     def iter_width(self):
         """returns an iterator on the width of this box"""
         return range(self.tl.i, self.br.i+1)
+
     def iter_height(self):
         """returns an iterator on the height of this box"""
         return range(self.tl.j, self.br.j+1)
+
     def iter_area(self):
         """returns an iterator on all the coordinates making up the
         inside and boundary of this box"""
         for j in self.iter_height():
             for i in self.iter_width():
-                yield([i, j])
+                yield [i, j]
+
     def iter_boundary(self):
-        """returns an iterator on all the coordinates making up
+        """returns an iterator on all the coordinates making up the
         boundary of this box"""
         for j in self.iter_height():
-            yield([self.tl.i, j])
-            yield([self.br.i, j])
+            yield [self.tl.i, j]
+            yield [self.br.i, j]
         for i in range(self.tl.i + 1, self.br.i):
-            yield([i, self.tl.j])
-            yield([i, self.br.j])
+            yield [i, self.tl.j]
+            yield [i, self.br.j]
+
 
 class Image:
     """a 8 bits image in memory stored as rows of Color"""
-    def __init__(self, width = None, height = None, rows = None):
+    def __init__(self, width=None, height=None, rows=None):
         """
 
         parameters:
@@ -212,7 +220,7 @@ class Image:
         return self._box
 
     @classmethod
-    def from_rgb_rows(cls, rows, has_alpha = False):
+    def from_rgb_rows(cls, rows, has_alpha=False):
         """generate a new image from a list of (r, g, b, r, g, b...)
         lists instead of list of list Color"""
         skip = 4 if has_alpha else 3
@@ -220,7 +228,7 @@ class Image:
         for row in rows:
             new_row = [ Color(row[i], row[i+1], row[i+2]) for i in range(0, len(row), skip) ]
             new_rows.append(new_row)
-        return Image(rows = new_rows)
+        return Image(rows=new_rows)
 
     def to_rgb_rows(self):
         """export the image as a list of (r, g, b, r, g, b...) lists
@@ -230,7 +238,7 @@ class Image:
             new_row = []
             for i in range(0, len(row)):
                 col = row[i]
-                a = [col.g, col.g, col.g] if col.is_grey() else [col.r, col.g, col.b] 
+                a = [col.g, col.g, col.g] if col.is_grey() else [col.r, col.g, col.b]
                 new_row.extend(a)
             rows.append(new_row)
         return rows
@@ -263,7 +271,7 @@ class Image:
         """Returns an iterator on all pixels within the given box
         area"""
         for pos in box.iter_area():
-            yield(self.get_pixel_at(pos[0], pos[1]))
+            yield self.get_pixel_at(pos[0], pos[1])
 
     def iter_area(self):
         """Returns an iterator on all pixels of this image"""
@@ -273,7 +281,7 @@ class Image:
         """Returns an iterator on all pixels within the boundary of
         given box area"""
         for pos in box.iter_boundary():
-            yield(self.get_pixel_at(pos[0], pos[1]))
+            yield self.get_pixel_at(pos[0], pos[1])
 
     def box_around(self, pixel, d):
         """Returns a box (size d x d) centered on the given pixel"""
@@ -297,11 +305,11 @@ class Image:
 
     def transform(self, func):
         """
-        
+
         Apply functiopn `func` on all pixels of this image, and return a new image.
         `func` takes a Pixel object and must return a Color object.
         """
-        new_image = Image(width = self.width, height = self.height)
+        new_image = Image(width=self.width, height=self.height)
         for pixel in self.iter_area():
             new_image.set_color_at(pixel.i, pixel.j, func(pixel))
         return new_image
@@ -311,8 +319,9 @@ class Image:
         for i, j in box.iter_boundary():
             self.set_color_at(i, j, color)
 
+
 class BlobFinder:
-    def __init__(self, image, bg_col = BLACK):
+    def __init__(self, image, bg_col=BLACK):
         self.image = image
         self.bg_col = bg_col
         self._blobmap = None
@@ -369,7 +378,7 @@ class BlobFinder:
             up   = non_bg_color_at(i    , j - 1) if j > 0 else None
             if up is None and left is None:
                 blob_id += 1   # no known neighbours, maybe a new blob ?
-                blobmap.set_color_at(i,j, Color.grey(blob_id))
+                blobmap.set_color_at(i, j, Color.grey(blob_id))
                 graph[blob_id] = []
                 continue
             if up is not None:
@@ -405,7 +414,8 @@ class BlobFinder:
 """
 
         resolved = {}
-        def smallest_label(label, explored = []):
+
+        def smallest_label(label, explored=[]):
             if label in resolved:
                 return resolved[label]
             smallest = label

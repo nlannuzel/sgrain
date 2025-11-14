@@ -1,5 +1,6 @@
 from math import sqrt, cos, asin, radians
 
+
 class Location:
     def __init__(self, lat, lon):
         self.lat = lat
@@ -11,8 +12,9 @@ class Location:
     def distance_to(self, other):
         """Returns the distance to another point, in kilometers, using the Haversine formula."""
         # https://en.wikipedia.org/wiki/Haversine_formula
-        #r = 6356.752  # Radius of the earth at the poles
+        # r = 6356.752  # Radius of the earth at the poles
         r = 6378.137  # Radius of the earth on the equator
+
         def to_rad(loc):
             yield radians(loc.lon)
             yield radians(loc.lat)
