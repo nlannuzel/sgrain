@@ -89,7 +89,7 @@ Open the home-assistant GUI in a browser. If not already done, install the File 
 ```yaml
 command_line:
   - sensor:
-      command: sleep 5 && /config/venv/bin/python3 /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n 1
+      command: /config/venv/bin/python3 /config/venv/bin/rain-intensity-at -a LATITUDE -o LONGITUDE -p 1 -n 1
       name: rain-sensor
       unique_id: rain
       scan_interval: 300
