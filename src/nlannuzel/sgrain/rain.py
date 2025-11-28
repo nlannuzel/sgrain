@@ -6,7 +6,7 @@ import datetime
 import time
 import os
 import shutil
-
+import fcntl
 
 class RainAreas:
     # Coordinates from the HTML/js code of
@@ -83,9 +83,16 @@ class RainAreas:
     def _download_image_to_cache(self):
         """Download the remote image and save it in a file locally"""
         url = f"https://www.weather.gov.sg/files/rainarea/50km/v2/{self.filename}"
-        with urllib.request.urlopen(url) as response:
-            with open(self.filepath, "wb") as f:
-                shutil.copyfileobj(response, f)
+
+        with open(self.filepath, "ab") as f:
+            fcntl.flock(f, fcntl.LOCK_EX)  # wait until we get the lock...
+            # we got the lock
+            try:
+                if os.fstat(f.fileno()).st_size == 0:  # file is empty, create it
+                    with urllib.request.urlopen(url) as response:
+                        shutil.copyfileobj(response, f)
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
 
     def _read_image_from_cache(self):
         """read the local image file, and load it in memory"""
