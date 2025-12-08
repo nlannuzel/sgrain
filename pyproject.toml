@@ -10,7 +10,7 @@ where = ["src"]
 
 [project]
 name = "nlannuzel.sgrain"
-version = "1.0.8"
+version = "1.0.9"
 authors = [
   { name = "Nicolas Lannuzel", email = "nlannuzel@gmail.com" },
 ]
